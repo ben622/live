@@ -32,8 +32,9 @@ public class LiveManager implements LiveInterface{
     public void prepare() {
         mAudioPusher = new AudioPusher.Builder()
                 .sampleRateInHz(44100)
-                .channelConfig(AudioFormat.CHANNEL_IN_STEREO)
+                .channelConfig(AudioFormat.CHANNEL_IN_MONO)
                 .audioFormat(AudioFormat.ENCODING_PCM_16BIT)
+                .nativePush(mNativePush)
                 .build();
         //208 * 144
         //176 * 144

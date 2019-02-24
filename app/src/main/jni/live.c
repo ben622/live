@@ -1,3 +1,4 @@
+//@author zhangchuan622@gmail.com
 #include <jni.h>
 #include <android/log.h>
 #include <stdlib.h>
@@ -5,6 +6,7 @@
 #include "include/rtmp/rtmp.h"
 #include "include/queue.h"
 #include <pthread.h>
+#include "include/faac/faac.h"
 
 #define PRINT_TAG "bNativeLive"
 #define PUSH_URL "rtmp://39.105.76.133:9510/live/benlive"
@@ -29,6 +31,11 @@ int start_time;
 
 int is_pushing = FALSE;
 
+//aac
+unsigned long inputSamples;
+unsigned long maxOutputBytes;
+faacEncHandle faacEncodeHandle;
+
 JNIEXPORT void JNICALL
 Java_com_ben_android_live_NativePush_setNativeVideoOptions(JNIEnv *env, jobject instance,
                                                            jint width, jint height, jint bitrate,
@@ -52,7 +59,7 @@ Java_com_ben_android_live_NativePush_setNativeVideoOptions(JNIEnv *env, jobject 
     param.rc.i_bitrate = bitrate / 1000;
     //瞬时最大码率
     param.rc.i_vbv_max_bitrate = bitrate / 1000 * 1.2;
-    //通过fps控制码率，而不是使用baseline和timestamp
+    //通过fps控制码率，
     param.b_vfr_input = 0;
     //帧率分子
     param.i_fps_num = fps;
@@ -78,12 +85,47 @@ Java_com_ben_android_live_NativePush_setNativeVideoOptions(JNIEnv *env, jobject 
 
 }
 
+/**
+ * Faac初始化
+ * Call faacEncOpen() for every encoder instance you need.
+ *To set encoder options, call faacEncGetCurrentConfiguration(), change the parameters in the structure accessible by the returned pointer and then call faacEncSetConfiguration().
+ *As long as there are still samples left to encode, call faacEncEncode() to encode the data. The encoder returns the bitstream data in a client-supplied buffer.
+ *Once you call faacEncEncode() with zero samples of input the flushing process is initiated; afterwards you may call faacEncEncode() with zero samples input only.
+ *faacEncEncode() will continue to write out data until all audio samples have been encoded.
+ *Once faacEncEncode() has returned with zero bytes written, call faacEncClose() to destroy this encoder instance.
+ * @param env
+ * @param instance
+ * @param sampleRateInHz
+ * @param channel
+ */
 JNIEXPORT void JNICALL
 Java_com_ben_android_live_NativePush_setNativeAudioOptions(JNIEnv *env, jobject instance,
                                                            jint sampleRateInHz, jint channel) {
+    faacEncodeHandle = faacEncOpen(sampleRateInHz, channel, &inputSamples, &maxOutputBytes);
+    if (!faacEncodeHandle) {
+        LOGE("%s", "FAAC encode open failed!");
+        return;
+    }
+    faacEncConfigurationPtr faacEncodeConfigurationPtr = faacEncGetCurrentConfiguration(
+            faacEncodeHandle);
+    //指定MPEG版本
+    faacEncodeConfigurationPtr->mpegVersion = MPEG4;
+    faacEncodeConfigurationPtr->allowMidside = 1;
+    faacEncodeConfigurationPtr->aacObjectType = LOW;
+    faacEncodeConfigurationPtr->outputFormat = 0; //输出是否包含ADTS头
+    faacEncodeConfigurationPtr->useTns = 1; //时域噪音控制,大概就是消爆音
+    faacEncodeConfigurationPtr->useLfe = 0;
+    faacEncodeConfigurationPtr->quantqual = 100;
+    faacEncodeConfigurationPtr->bandWidth = 0; //频宽
+    faacEncodeConfigurationPtr->shortctl = SHORTCTL_NORMAL;
 
-    // TODO
+    //call faacEncSetConfiguration
+    if (!faacEncSetConfiguration(faacEncodeHandle, faacEncodeConfigurationPtr)) {
+        LOGE("%s", "faacEncSetConfiguration failed！");
+        return;
+    }
 
+    LOGI("%s", "faac initialization successful");
 }
 
 
@@ -191,10 +233,10 @@ void add_squence_header_to_rtmppacket(unsigned char *sps, unsigned char *pps, in
  */
 void add_frame_body_to_rtmppacket(unsigned char *frame, int len) {
     //去掉起始码四字节
-    if(frame[2] == 0x00){  //00 00 00 01
+    if (frame[2] == 0x00) {  //00 00 00 01
         frame += 4;
         len -= 4;
-    }else if(frame[2] == 0x01){ // 00 00 01
+    } else if (frame[2] == 0x01) { // 00 00 01
         frame += 3;
         len -= 3;
     }
@@ -328,14 +370,177 @@ Java_com_ben_android_live_NativePush_sendVideo(JNIEnv *env, jobject instance, jb
     (*env)->ReleaseByteArrayElements(env, data_, data, 0);
 }
 
+
+/**
+ * 将音频头信息发送
+ * 音频头消息只发送一次
+ */
+void add_audio_squence_header_to_rtmppacket() {
+    unsigned char *ppBuffer;
+    unsigned long pSizeOfDecoderSpecificInfo;
+    faacEncGetDecoderSpecificInfo(faacEncodeHandle, &ppBuffer, &pSizeOfDecoderSpecificInfo);
+    //AAC Header占用2字节
+    int size = pSizeOfDecoderSpecificInfo + 2;
+    RTMPPacket *packet = malloc(sizeof(RTMPPacket));
+    RTMPPacket_Alloc(packet, size);
+    RTMPPacket_Reset(packet);
+    //设置packet中的body信息
+    char *body = packet->m_body;
+
+    /**
+     * 1、SoundFormat，4bit
+            0 = Linear PCM, platform endian
+            1 = ADPCM
+            2 = MP3
+            3 = Linear PCM, little endian
+            4 = Nellymoser 16 kHz mono
+            5 = Nellymoser 8 kHz mono
+            6 = Nellymoser
+            7 = G.711 A-law logarithmic PCM
+            8 = G.711 mu-law logarithmic PCM
+            9 = reserved
+            10 = AAC
+            11 = Speex
+            14 = MP3 8 kHz
+            15 = Device-specific sound
+       2、SoundRate，2bit，抽样频率
+            0 = 5.5 kHz
+            1 = 11 kHz
+            2 = 22 kHz
+            3 = 44 kHz
+            对于AAC音频来说，总是0x11，即44khz.
+        3、SoundSize，1bit，音频的位数。
+            0 = 8-bit samples
+            1 = 16-bit samples
+            AAC总是为0x01,16位。
+        4、SoundType，1bit，声道
+            0 = Mono sound
+            1 = Stereo sound
+     */
+    //10+3+1+1
+    body[0] = 0xAF;
+    body[1] = 0x00;
+    //copy audio data
+    memcpy(&body[2], ppBuffer, pSizeOfDecoderSpecificInfo);
+
+    //设置rtmppacket
+    packet->m_hasAbsTimestamp = 0;
+    packet->m_nBodySize = size;
+    packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
+    packet->m_nChannel = 0x04; //Audio和Video通道
+    packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
+    packet->m_nTimeStamp = RTMP_GetTime() - start_time;//记录了每一个tag相对于第一个tag（File Header）的相对时间
+    add_rtmp_packet_queue(packet);
+
+}
+
+/**
+ * 使用rtmppacket将aac编码后的音频数据打包入队
+ * @param bitbuf
+ * @param byteslen
+ */
+void add_audio_body_to_rtmppacket(unsigned char *bitbuf, int byteslen) {
+    //AAC Header占用2字节
+    int size = byteslen + 2;
+    RTMPPacket *packet = malloc(sizeof(RTMPPacket));
+    RTMPPacket_Alloc(packet, size);
+    RTMPPacket_Reset(packet);
+    //设置packet中的body信息
+    char *body = packet->m_body;
+
+    /**
+     * 1、SoundFormat，4bit
+            0 = Linear PCM, platform endian
+            1 = ADPCM
+            2 = MP3
+            3 = Linear PCM, little endian
+            4 = Nellymoser 16 kHz mono
+            5 = Nellymoser 8 kHz mono
+            6 = Nellymoser
+            7 = G.711 A-law logarithmic PCM
+            8 = G.711 mu-law logarithmic PCM
+            9 = reserved
+            10 = AAC
+            11 = Speex
+            14 = MP3 8 kHz
+            15 = Device-specific sound
+       2、SoundRate，2bit，抽样频率
+            0 = 5.5 kHz
+            1 = 11 kHz
+            2 = 22 kHz
+            3 = 44 kHz
+            对于AAC音频来说，总是0x11，即44khz.
+        3、SoundSize，1bit，音频的位数。
+            0 = 8-bit samples
+            1 = 16-bit samples
+            AAC总是为0x01,16位。
+        4、SoundType，1bit，声道
+            0 = Mono sound
+            1 = Stereo sound
+        5、AACPacketType，8bit。
+这个字段来表示AACAUDIODATA的类型：0 = AAC sequence header，1 = AAC raw。第一个音频包用0，后面的都用1。
+     */
+    //10+3+1+1
+    body[0] = 0xAF;
+    body[1] = 0x01;
+    //copy audio data
+    memcpy(&body[2], bitbuf, byteslen);
+
+    //设置rtmppacket
+    packet->m_hasAbsTimestamp = 0;
+    packet->m_nBodySize = size;
+    packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
+    packet->m_nChannel = 0x04; //Audio和Video通道
+    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
+    packet->m_nTimeStamp = RTMP_GetTime() - start_time;//记录了每一个tag相对于第一个tag（File Header）的相对时间
+    add_rtmp_packet_queue(packet);
+}
+
+/**
+ * 使用AAC进行音频编码
+ * @param env
+ * @param instance
+ * @param audioData_
+ * @param offsetInBytes
+ * @param sizeInBytes
+ */
 JNIEXPORT void JNICALL
 Java_com_ben_android_live_NativePush_sendAudio(JNIEnv *env, jobject instance, jbyteArray audioData_,
                                                jint offsetInBytes, jint sizeInBytes) {
     jbyte *audioData = (*env)->GetByteArrayElements(env, audioData_, NULL);
-
-    // TODO
-
+    int *pcmbuf;
+    unsigned char *bitbuf;
+    pcmbuf = (short *) malloc(inputSamples * sizeof(int));
+    bitbuf = (unsigned char *) malloc(maxOutputBytes * sizeof(unsigned char));
+    int nByteCount = 0;
+    unsigned int nBufferSize = (unsigned int) sizeInBytes / 2;
+    unsigned short *buf = (unsigned short *) audioData;
+    while (nByteCount < nBufferSize) {
+        int audioLength = inputSamples;
+        if ((nByteCount + inputSamples) >= nBufferSize) {
+            audioLength = nBufferSize - nByteCount;
+        }
+        int i;
+        for (i = 0; i < audioLength; i++) {//每次从实时的pcm音频队列中读出量化位数为8的pcm数据。
+            int s = ((int16_t *) buf + nByteCount)[i];
+            pcmbuf[i] = s << 8;//用8个二进制位来表示一个采样量化点（模数转换）
+        }
+        nByteCount += inputSamples;
+        //利用FAAC进行编码，pcmbuf为转换后的pcm流数据，audioLength为调用faacEncOpen时得到的输入采样数，bitbuf为编码后的数据buff，nMaxOutputBytes为调用faacEncOpen时得到的最大输出字节数
+        int byteslen = faacEncEncode(faacEncodeHandle, pcmbuf, audioLength,
+                                     bitbuf, maxOutputBytes);
+        if (byteslen < 1) {
+            continue;
+        }
+        add_audio_body_to_rtmppacket(bitbuf, byteslen);//从bitbuf中得到编码后的aac数据流，放到数据队列
+    }
     (*env)->ReleaseByteArrayElements(env, audioData_, audioData, 0);
+    if (bitbuf)
+        free(bitbuf);
+    if (pcmbuf)
+        free(pcmbuf);
+
+
 }
 
 JNIEXPORT void JNICALL
@@ -385,23 +590,25 @@ void *push_thread_func(void *arg) {
         goto end;
     }
     is_pushing = TRUE;
+    //send audio header packet
+    add_audio_squence_header_to_rtmppacket();
     //send
-    while(is_pushing) {
+    while (is_pushing) {
         pthread_mutex_lock(&push_thread_mutex);
         pthread_cond_wait(&push_cond, &push_thread_mutex);
         //从队列中获取第一个packet
         RTMPPacket *packet = queue_get_first();
-        if(packet){
+        if (packet) {
             //移除
             queue_delete_first();
             packet->m_nInfoField2 = rtmp->m_stream_id; //RTMP协议，stream_id数据
-            int i = RTMP_SendPacket(rtmp,packet,TRUE); //TRUE放入librtmp队列中，并不是立即发送
-            if(!i){
+            int i = RTMP_SendPacket(rtmp, packet, TRUE); //TRUE放入librtmp队列中，并不是立即发送
+            if (!i) {
                 RTMPPacket_Free(packet);
                 pthread_mutex_unlock(&push_thread_mutex);
                 goto end;
-            }else{
-                LOGI("%s","rtmp send packet");
+            } else {
+                LOGI("%s", "rtmp send packet");
             }
             RTMPPacket_Free(packet);
         }

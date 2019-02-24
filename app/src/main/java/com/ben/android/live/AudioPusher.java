@@ -24,6 +24,7 @@ public class AudioPusher extends APusher {
     @Override
     public void startPush() {
         isPushing = true;
+        builder.getNativePush().setNativeAudioOptions(builder.getSampleRateInHz(), builder.getChannelConfig());
         mAudioThread = new Thread(new AudioPushTask());
         mAudioThread.start();
     }
@@ -36,7 +37,7 @@ public class AudioPusher extends APusher {
     @Override
     public void stopPush() {
         isPushing = false;
-
+        builder.getNativePush().stopPush();
     }
 
     @Override
@@ -46,16 +47,18 @@ public class AudioPusher extends APusher {
             audioRecord.release();
             audioRecord = null;
         }
+        builder.getNativePush().free();
     }
 
 
-    public static class Builder{
+    public static class Builder {
         private int audioSource;
         private int sampleRateInHz;
         private int channelConfig;
         private int audioFormat;
         private int bufferSizeInByte;
 
+        private NativePush nativePush;
 
 
         public int getAudioSource() {
@@ -94,21 +97,31 @@ public class AudioPusher extends APusher {
             return bufferSizeInByte;
         }
 
+        public NativePush getNativePush() {
+            return nativePush;
+        }
+
+        public Builder nativePush(NativePush nativePush) {
+            this.nativePush = nativePush;
+            return this;
+        }
 
         public AudioPusher build() {
             return new AudioPusher(this);
         }
     }
 
-    private class AudioPushTask implements Runnable{
+    private class AudioPushTask implements Runnable {
 
         @Override
         public void run() {
-            while (isPushing && audioRecord!=null){
+            audioRecord.startRecording();
+
+            while (isPushing && audioRecord != null) {
                 byte[] buffer = new byte[bufferSize];
-                audioRecord.read(buffer, 0, bufferSize);
-                if (buffer.length > 0) {
-                  //  Log.e(TAG, "run: 音频数据" );
+                int len = audioRecord.read(buffer, 0, bufferSize);
+                if (len > 0) {
+                    builder.getNativePush().sendAudio(buffer, 0, len);
                 }
             }
         }
