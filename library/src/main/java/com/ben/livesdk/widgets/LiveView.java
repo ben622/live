@@ -1,14 +1,14 @@
-package com.ben.android.live.widgets;
+package com.ben.livesdk.widgets;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.SurfaceView;
 
-import com.ben.android.live.LiveInterface;
-import com.ben.android.live.LiveManager;
-import com.ben.android.live.VideoPushInterface;
+import com.ben.livesdk.LiveInterface;
+import com.ben.livesdk.LiveManager;
 
-public class LiveView extends SurfaceView implements LiveInterface{
+
+public class LiveView extends SurfaceView implements LiveInterface {
 
     private LiveManager liveManager;
 

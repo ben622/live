@@ -25,7 +25,7 @@
         android:onClick="onClick"
         android:text="切换摄像头"/>
 
-    <com.ben.android.live.widgets.LiveView
+    <com.ben.livesdk.widgets.LiveView
         android:id="@+id/id_surfaceview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

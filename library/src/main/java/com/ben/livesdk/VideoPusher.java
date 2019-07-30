@@ -1,9 +1,7 @@
-package com.ben.android.live;
+package com.ben.livesdk;
 
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
-import android.media.Image;
-import android.util.Log;
 import android.view.SurfaceHolder;
 
 import java.util.List;

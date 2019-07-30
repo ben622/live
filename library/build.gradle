@@ -1,0 +1,55 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion rootProject.ext.COMPILE_SDK_VERSION
+
+
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.MIN_SDK_VERSION
+        targetSdkVersion rootProject.ext.TARGET_SDK_VERSION
+        versionCode rootProject.ext.VERSION_CODE
+        versionName "$rootProject.ext.VERSION_NAME"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters 'armeabi'
+        }
+    }
+
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            def url = rootProject.ext.LOCAL_SERVICE_URL+":"+rootProject.ext.LOCAL_SERVICE_PORT
+            if(rootProject.ext.IS_BUILD_RELEASE){
+                url = rootProject.ext.REMOTE_SERVICE_URL+":"+rootProject.ext.REMOTE_SERVICE_PORT
+            }
+            buildConfigField("String","serviceUrl","\"$url\"")
+        }
+        debug{
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            def url = rootProject.ext.LOCAL_SERVICE_URL+":"+rootProject.ext.LOCAL_SERVICE_PORT
+            if(rootProject.ext.IS_BUILD_RELEASE){
+                url = rootProject.ext.REMOTE_SERVICE_URL+":"+rootProject.ext.REMOTE_SERVICE_PORT
+            }
+            buildConfigField("String","serviceUrl","\"$url\"")
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.APPCOMPAT_V7_VERSION"
+    implementation "com.android.support.constraint:constraint-layout:$rootProject.ext.CONSTRAINT_LAYOUT_VERSION"
+    testImplementation "junit:junit:$rootProject.ext.JUNIT_VERSION"
+}

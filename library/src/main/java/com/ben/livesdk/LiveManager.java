@@ -1,4 +1,4 @@
-package com.ben.android.live;
+package com.ben.livesdk;
 
 import android.content.Context;
 import android.hardware.Camera;

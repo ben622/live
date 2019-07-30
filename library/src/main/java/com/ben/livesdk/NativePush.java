@@ -1,4 +1,4 @@
-package com.ben.android.live;
+package com.ben.livesdk;
 
 public class NativePush {
 

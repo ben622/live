@@ -8,9 +8,8 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 
-import com.ben.android.live.LiveManager;
 import com.ben.android.live.R;
-import com.ben.android.live.widgets.LiveView;
+import com.ben.livesdk.widgets.LiveView;
 
 public class MainActivity extends AppCompatActivity {
 

@@ -1,8 +1,7 @@
-package com.ben.android.live;
+package com.ben.livesdk;
 
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.util.Log;
 
 public class AudioPusher extends APusher {
     private Builder builder;

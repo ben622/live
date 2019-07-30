@@ -37,7 +37,7 @@ unsigned long maxOutputBytes;
 faacEncHandle faacEncodeHandle;
 
 JNIEXPORT void JNICALL
-Java_com_ben_android_live_NativePush_setNativeVideoOptions(JNIEnv *env, jobject instance,
+Java_com_ben_livesdk_NativePush_setNativeVideoOptions(JNIEnv *env, jobject instance,
                                                            jint width, jint height, jint bitrate,
                                                            jint fps) {
     LOGI("%s", "setNativeVideoOptions...");
@@ -99,7 +99,7 @@ Java_com_ben_android_live_NativePush_setNativeVideoOptions(JNIEnv *env, jobject 
  * @param channel
  */
 JNIEXPORT void JNICALL
-Java_com_ben_android_live_NativePush_setNativeAudioOptions(JNIEnv *env, jobject instance,
+Java_com_ben_livesdk_NativePush_setNativeAudioOptions(JNIEnv *env, jobject instance,
                                                            jint sampleRateInHz, jint channel) {
     faacEncodeHandle = faacEncOpen(sampleRateInHz, channel, &inputSamples, &maxOutputBytes);
     if (!faacEncodeHandle) {
@@ -314,7 +314,7 @@ void add_frame_body_to_rtmppacket(unsigned char *frame, int len) {
  * @param data_
  */
 JNIEXPORT void JNICALL
-Java_com_ben_android_live_NativePush_sendVideo(JNIEnv *env, jobject instance, jbyteArray data_) {
+Java_com_ben_livesdk_NativePush_sendVideo(JNIEnv *env, jobject instance, jbyteArray data_) {
     jbyte *data = (*env)->GetByteArrayElements(env, data_, NULL);
     //将NV21格式数据转换为YUV420
     //NV21转YUV420p的公式：(Y不变)Y=Y，U=Y+1+1，V=Y+1
@@ -505,7 +505,7 @@ void add_audio_body_to_rtmppacket(unsigned char *bitbuf, int byteslen) {
  * @param sizeInBytes
  */
 JNIEXPORT void JNICALL
-Java_com_ben_android_live_NativePush_sendAudio(JNIEnv *env, jobject instance, jbyteArray audioData_,
+Java_com_ben_livesdk_NativePush_sendAudio(JNIEnv *env, jobject instance, jbyteArray audioData_,
                                                jint offsetInBytes, jint sizeInBytes) {
     jbyte *audioData = (*env)->GetByteArrayElements(env, audioData_, NULL);
     int *pcmbuf;
@@ -544,21 +544,21 @@ Java_com_ben_android_live_NativePush_sendAudio(JNIEnv *env, jobject instance, jb
 }
 
 JNIEXPORT void JNICALL
-Java_com_ben_android_live_NativePush_prepare(JNIEnv *env, jobject instance) {
+Java_com_ben_livesdk_NativePush_prepare(JNIEnv *env, jobject instance) {
 
     // TODO
 
 }
 
 JNIEXPORT void JNICALL
-Java_com_ben_android_live_NativePush_stopPush(JNIEnv *env, jobject instance) {
+Java_com_ben_livesdk_NativePush_stopPush(JNIEnv *env, jobject instance) {
     is_pushing = FALSE;
     // TODO
 
 }
 
 JNIEXPORT void JNICALL
-Java_com_ben_android_live_NativePush_free(JNIEnv *env, jobject instance) {
+Java_com_ben_livesdk_NativePush_free(JNIEnv *env, jobject instance) {
 
     // TODO
 
@@ -627,7 +627,7 @@ void *push_thread_func(void *arg) {
  * @param instance
  */
 JNIEXPORT void JNICALL
-Java_com_ben_android_live_NativePush_startPush(JNIEnv *env, jobject instance) {
+Java_com_ben_livesdk_NativePush_startPush(JNIEnv *env, jobject instance) {
     //创建队列
     create_queue();
     //初始化线程
@@ -638,7 +638,7 @@ Java_com_ben_android_live_NativePush_startPush(JNIEnv *env, jobject instance) {
 }
 
 JNIEXPORT void JNICALL
-Java_com_ben_android_live_NativePush_pausePush(JNIEnv *env, jobject instance) {
+Java_com_ben_livesdk_NativePush_pausePush(JNIEnv *env, jobject instance) {
 
     // TODO
 
