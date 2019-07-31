@@ -41,7 +41,6 @@ Java_com_ben_livesdk_NativePush_setNativeVideoOptions(JNIEnv *env, jobject insta
                                                            jint width, jint height, jint bitrate,
                                                            jint fps) {
     LOGI("%s", "setNativeVideoOptions...");
-
     //0延迟
     x264_param_default_preset(&param, "ultrafast", "zerolatency");
     param.i_csp = X264_CSP_I420;

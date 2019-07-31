@@ -14,6 +14,13 @@ android {
         ndk {
             abiFilters 'armeabi'
         }
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_ARM_NEON=TRUE", "-DANDROID_TOOLCHAIN=clang","ANDROID_STL=c++_shared"
+                cppFlags "-fexceptions"
+            }
+        }
     }
 
 
@@ -22,28 +29,30 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
-            def url = rootProject.ext.LOCAL_SERVICE_URL+":"+rootProject.ext.LOCAL_SERVICE_PORT
-            if(rootProject.ext.IS_BUILD_RELEASE){
-                url = rootProject.ext.REMOTE_SERVICE_URL+":"+rootProject.ext.REMOTE_SERVICE_PORT
+            def url = rootProject.ext.LOCAL_SERVICE_URL
+            if (rootProject.ext.IS_BUILD_RELEASE) {
+                url = rootProject.ext.REMOTE_SERVICE_URL
             }
-            buildConfigField("String","serviceUrl","\"$url\"")
+            buildConfigField("String", "serviceUrl", "\"$url\"")
         }
-        debug{
+        debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
-            def url = rootProject.ext.LOCAL_SERVICE_URL+":"+rootProject.ext.LOCAL_SERVICE_PORT
-            if(rootProject.ext.IS_BUILD_RELEASE){
-                url = rootProject.ext.REMOTE_SERVICE_URL+":"+rootProject.ext.REMOTE_SERVICE_PORT
+            def url = rootProject.ext.LOCAL_SERVICE_URL
+            if (rootProject.ext.IS_BUILD_RELEASE) {
+                url = rootProject.ext.REMOTE_SERVICE_URL
             }
-            buildConfigField("String","serviceUrl","\"$url\"")
+            buildConfigField("String", "serviceUrl", "\"$url\"")
         }
     }
 
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
+            version "3.10.2"
         }
+
     }
 }
 

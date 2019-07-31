@@ -3,11 +3,14 @@
 buildscript {
 
     repositories {
-        google()
         jcenter()
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'com.android.tools.build:gradle:3.4.2'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -36,12 +39,9 @@ ext {
     JUNIT_VERSION = "4.12"
     //========================
     //版本发布服务器
-    REMOTE_SERVICE_URL = "http://www.zhangchuany.com"
-    REMOTE_SERVICE_PORT = 8080
+    REMOTE_SERVICE_URL = "http://www.zhangchuany.com:8080/springboot"
     //本地服务地址，用于本地测试
-    LOCAL_SERVICE_URL = "http://localhost"
-    LOCAL_SERVICE_PORT = 8080
-
+    LOCAL_SERVICE_URL = "http://localhost:8080/springboot"
     //build version
     IS_BUILD_RELEASE = false
 }

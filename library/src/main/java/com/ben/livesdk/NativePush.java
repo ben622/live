@@ -1,11 +1,6 @@
 package com.ben.livesdk;
 
 public class NativePush {
-
-    static{
-        System.loadLibrary("live");
-    }
-
     public native void setNativeVideoOptions(int width,int height,int bitrate,int fps);
     public native void setNativeAudioOptions(int sampleRateInHz,int channel);
     public native void sendVideo(byte[] data);

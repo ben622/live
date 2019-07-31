@@ -2,7 +2,6 @@ package com.ben.livesdk.api;
 
 import android.content.Context;
 
-import com.ben.livesdk.BuildConfig;
 
 /**
  * @author @zhangchuan622@gmail.com
@@ -12,7 +11,7 @@ import com.ben.livesdk.BuildConfig;
 public class SDKInitializer {
 
     public static void init(Context context) {
-
+        System.loadLibrary("live");
     }
 
 }

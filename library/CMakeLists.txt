@@ -16,49 +16,52 @@ INCLUDE_DIRECTORIES(${ROOT}/include)
 
 #添加faac预编译库
 ADD_LIBRARY(faac
-            STATIC
-            IMPORTED)
+        STATIC
+        IMPORTED)
 #指定静态库文件路径
 SET_TARGET_PROPERTIES(faac
-                     PROPERTIES
-                     IMPORTED_LOCATION
-                     ${PRELIB_ROOT}/libfaac.a)
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${PRELIB_ROOT}/libfaac.a)
 #添加x264预编译库
 ADD_LIBRARY(x264
-            STATIC
-            IMPORTED)
+        STATIC
+        IMPORTED)
 #指定共享库路径
 SET_TARGET_PROPERTIES(x264
-                    PROPERTIES
-                    IMPORTED_LOCATION
-                    ${PRELIB_ROOT}/libx264.a)
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${PRELIB_ROOT}/libx264.a)
 
 #添加rtmp模块
 ADD_LIBRARY(rtmp
-            STATIC
-            IMPORTED)
+        STATIC
+        IMPORTED)
 SET_TARGET_PROPERTIES(rtmp
-                      PROPERTIES
-                      IMPORTED_LOCATION
-                      ${PRELIB_ROOT}/librtmp.a)
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${PRELIB_ROOT}/librtmp.a)
 
 ADD_LIBRARY(live
-            SHARED
-            ${ROOT}/live.c
-            ${ROOT}/include/queue.c)
-
+        SHARED
+        ${ROOT}/include/queue.c
+        ${ROOT}/live.c
+        ${ROOT}/native_configure.cpp
+        ${ROOT}/native_chatroom_info.cpp
+        ${ROOT}/main.cpp
+        ${ROOT}/native_push_service.cpp)
 
 
 #添加NDK API
 FIND_LIBRARY(log-lib
-            log)
+        log)
 
 #链接库
 TARGET_LINK_LIBRARIES(live
-                    x264
-                    rtmp
-                    faac
-                    ${log-lib})
+        x264
+        rtmp
+        faac
+        ${log-lib})
 
 
 
