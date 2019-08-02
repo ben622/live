@@ -12,7 +12,7 @@ message("当前工程的路径：${PROJECT_SOURCE_DIR}")
 #指定头文件
 set(ROOT ${CMAKE_SOURCE_DIR}/src/main/jni)
 set(PRELIB_ROOT ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/lib)
-INCLUDE_DIRECTORIES(${ROOT}/include)
+INCLUDE_DIRECTORIES(${ROOT}/include ${ROOT}/include/jni )
 
 #添加faac预编译库
 ADD_LIBRARY(faac

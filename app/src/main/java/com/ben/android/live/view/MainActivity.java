@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.WindowManager;
 
 import com.ben.android.live.R;
+import com.ben.livesdk.NativePush;
+import com.ben.livesdk.api.SDKInitializer;
 import com.ben.livesdk.widgets.LiveView;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,7 +41,10 @@ public class MainActivity extends AppCompatActivity {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.id_start_push:
-                mLiveView.startPush();
+                //mLiveView.startPush();
+                SDKInitializer.init(this);
+                NativePush nativePush = new NativePush();
+                nativePush.test();
                 break;
             case R.id.id_stop_push:
                 mLiveView.stopPush();

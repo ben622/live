@@ -11,4 +11,6 @@ public class NativePush {
     public native void stopPush();
     public native void free();
 
+    public native void test();
+
 }

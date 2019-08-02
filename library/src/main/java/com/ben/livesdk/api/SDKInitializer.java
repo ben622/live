@@ -1,6 +1,11 @@
 package com.ben.livesdk.api;
 
 import android.content.Context;
+import android.util.Log;
+
+import com.ben.livesdk.utils.SignatureTypes;
+
+import java.lang.reflect.Method;
 
 
 /**

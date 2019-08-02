@@ -5,12 +5,17 @@
 #ifndef LIVE_NATIVE_PUSH_HPP
 #define LIVE_NATIVE_PUSH_HPP
 
-#include "jni.hpp"
+#include "include/jni/jni.hpp"
 
 //benlive::push
 namespace benlive {
     namespace push {
-        class Push {
+        class Push : jni::Class {
+            const char *Name() {
+                return "com/ben/livesdk/NativePush";
+            }
+
+
         public:
             virtual void prepare();
 
