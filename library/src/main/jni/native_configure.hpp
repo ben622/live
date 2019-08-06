@@ -4,14 +4,15 @@
 
 #ifndef LIVE_NATIVE_CONFIGURE_H
 #define LIVE_NATIVE_CONFIGURE_H
-#include "jni.hpp"
+#include "include/jni/JniHelpers.h"
+using namespace benlive::jni;
 //benlive::configure
 namespace benliv {
     namespace configure {
         class native_configure {
         private:
             //服务地址
-            string serviceUrl;
+            std::string serviceUrl;
             bool isDebug;
         public:
         };

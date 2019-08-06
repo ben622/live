@@ -4,7 +4,8 @@
 #ifndef LIVE_NATIVE_PUSH_SERVICE_HPP
 #define LIVE_NATIVE_PUSH_SERVICE_HPP
 
-#include "jni.hpp"
+#include "include/jni/JniHelpers.h"
+using namespace benlive::jni;
 //c
 extern "C" {
 #include "include/queue.h"
@@ -30,13 +31,14 @@ namespace benlive {
             int startTime;
             int isPushing = false;
         public:
-            void init();
-
+            NativePushService();
             void push(RTMPPacket *packet);
-
             void destory();
+
+            static NativePushService *getPushService();
+
         };
     }
 }
-
+static benlive::service::NativePushService *nativePushService;
 #endif //LIVE_NATIVE_PUSH_SERVICE_HPP

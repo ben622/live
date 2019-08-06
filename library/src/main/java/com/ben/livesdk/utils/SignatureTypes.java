@@ -14,7 +14,6 @@ import java.lang.reflect.Type;
 public class SignatureTypes {
 
     public static Method getMethodByJavaClassNameInNative(String className,String methodName){
-        Log.e("benlive", "getMethodByJavaClassNameInNative: "+className+",methodName:"+methodName );
         if (className==null || methodName==null) return null;
         try {
             return Class.forName(className.replaceAll("/", ".")).getDeclaredMethod(methodName);

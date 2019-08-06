@@ -34,17 +34,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-
-
+        SDKInitializer.init(this);
     }
 
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.id_start_push:
-                //mLiveView.startPush();
-                SDKInitializer.init(this);
-                NativePush nativePush = new NativePush();
-                nativePush.test();
+                mLiveView.startPush();
                 break;
             case R.id.id_stop_push:
                 mLiveView.stopPush();

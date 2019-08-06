@@ -1,3 +1,4 @@
+/*
 //@author zhangchuan622@gmail.com
 #include <jni.h>
 #include <android/log.h>
@@ -84,6 +85,7 @@ Java_com_ben_livesdk_NativePush_setNativeVideoOptions(JNIEnv *env, jobject insta
 
 }
 
+*/
 /**
  * Faac初始化
  * Call faacEncOpen() for every encoder instance you need.
@@ -96,7 +98,8 @@ Java_com_ben_livesdk_NativePush_setNativeVideoOptions(JNIEnv *env, jobject insta
  * @param instance
  * @param sampleRateInHz
  * @param channel
- */
+ *//*
+
 JNIEXPORT void JNICALL
 Java_com_ben_livesdk_NativePush_setNativeAudioOptions(JNIEnv *env, jobject instance,
                                                            jint sampleRateInHz, jint channel) {
@@ -128,10 +131,12 @@ Java_com_ben_livesdk_NativePush_setNativeAudioOptions(JNIEnv *env, jobject insta
 }
 
 
+*/
 /**
  * 将packet添加至队列中
  * @param packet
- */
+ *//*
+
 void add_rtmp_packet_queue(RTMPPacket *packet) {
     //lock
     pthread_mutex_lock(&push_thread_mutex);
@@ -145,13 +150,15 @@ void add_rtmp_packet_queue(RTMPPacket *packet) {
 }
 
 
+*/
 /**
  * 添加视频序列消息头至rtmppacket中
  * @param sps
  * @param pps
  * @param sps_length
  * @param pps_length
- */
+ *//*
+
 void add_squence_header_to_rtmppacket(unsigned char *sps, unsigned char *pps, int sps_length,
                                       int pps_length) {
     //packet内容大小
@@ -163,7 +170,8 @@ void add_squence_header_to_rtmppacket(unsigned char *sps, unsigned char *pps, in
     //设置packet中的body信息
     char *body = packet->m_body;
     int i = 0;
-    /**
+    */
+/**
      * (1) FrameType，4bit，帧类型
             1 = key frame (for AVC, a seekable frame)
             2 = inter frame (for AVC, a non-seekable frame)
@@ -180,7 +188,8 @@ void add_squence_header_to_rtmppacket(unsigned char *sps, unsigned char *pps, in
             6 = Screen video version 2
             7 = AVC
 
-     */
+     *//*
+
     //body 第一位
     body[i++] = 0x17; //(1)-(2)4bit*2关键帧，帧内压缩
     body[i++] = 0x00; //(3)8bit
@@ -188,7 +197,9 @@ void add_squence_header_to_rtmppacket(unsigned char *sps, unsigned char *pps, in
     body[i++] = 0x00; //(5)8bit
     body[i++] = 0x00; //(6)8bit
 
-    /*AVCDecoderConfigurationRecord*/
+    */
+/*AVCDecoderConfigurationRecord*//*
+
     body[i++] = 0x01;//configurationVersion，版本为1
     body[i++] = sps[1];//AVCProfileIndication
     body[i++] = sps[2];//profile_compatibility
@@ -197,14 +208,18 @@ void add_squence_header_to_rtmppacket(unsigned char *sps, unsigned char *pps, in
     body[i++] = 0xFF;//lengthSizeMinusOne,H264 视频中 NALU的长度，计算方法是 1 + (lengthSizeMinusOne & 3),实际测试时发现总为FF，计算结果为4.
 
 
-    /*sps*/
+    */
+/*sps*//*
+
     body[i++] = 0xE1;//numOfSequenceParameterSets:SPS的个数，计算方法是 numOfSequenceParameterSets & 0x1F,实际测试时发现总为E1，计算结果为1.
     body[i++] = (sps_length >> 8) & 0xff;//sequenceParameterSetLength:SPS的长度
     body[i++] = sps_length & 0xff;//sequenceParameterSetNALUnits
     memcpy(&body[i], sps, sps_length);
     i += sps_length;
 
-    /*pps*/
+    */
+/*pps*//*
+
     body[i++] = 0x01;//numOfPictureParameterSets:PPS 的个数,计算方法是 numOfPictureParameterSets & 0x1F,实际测试时发现总为E1，计算结果为1.
     body[i++] = (pps_length >> 8) & 0xff;//pictureParameterSetLength:PPS的长度
     body[i++] = (pps_length) & 0xff;//PPS
@@ -225,11 +240,13 @@ void add_squence_header_to_rtmppacket(unsigned char *sps, unsigned char *pps, in
 }
 
 
+*/
 /**
  * 添加帧信息至rtmppacket
  * @param frame
  * @param length
- */
+ *//*
+
 void add_frame_body_to_rtmppacket(unsigned char *frame, int len) {
     //去掉起始码四字节
     if (frame[2] == 0x00) {  //00 00 00 01
@@ -244,7 +261,8 @@ void add_frame_body_to_rtmppacket(unsigned char *frame, int len) {
     RTMPPacket_Alloc(packet, size);
     RTMPPacket_Reset(packet);
     char *body = packet->m_body;
-    /**
+    */
+/**
     * (1) FrameType，4bit，帧类型
            1 = key frame (for AVC, a seekable frame)
            2 = inter frame (for AVC, a non-seekable frame)
@@ -261,7 +279,8 @@ void add_frame_body_to_rtmppacket(unsigned char *frame, int len) {
            6 = Screen video version 2
            7 = AVC
 
-    */
+    *//*
+
     //判断当前nalutype是关键帧I（帧内压缩）还是普通帧P（帧间压缩）
     //===================nal-type==========
     //5	IDR图像中的片 关键帧可以直接解压渲染
@@ -284,7 +303,9 @@ void add_frame_body_to_rtmppacket(unsigned char *frame, int len) {
         //关键帧
         body[0] = 0x17;
     }
-    body[1] = 0x01; /*nal unit,NALUs（AVCPacketType == 1)*/
+    body[1] = 0x01; */
+/*nal unit,NALUs（AVCPacketType == 1)*//*
+
     body[2] = 0x00; //composition time 0x000000 24bit
     body[3] = 0x00;
     body[4] = 0x00;
@@ -295,7 +316,9 @@ void add_frame_body_to_rtmppacket(unsigned char *frame, int len) {
     body[7] = (len >> 8) & 0xff;
     body[8] = (len) & 0xff;
 
-    /*copy data*/
+    */
+/*copy data*//*
+
     memcpy(&body[9], frame, len);
 
     packet->m_hasAbsTimestamp = 0;
@@ -307,11 +330,13 @@ void add_frame_body_to_rtmppacket(unsigned char *frame, int len) {
     add_rtmp_packet_queue(packet);
 }
 
+*/
 /**
  * @param env
  * @param instance
  * @param data_
- */
+ *//*
+
 JNIEXPORT void JNICALL
 Java_com_ben_livesdk_NativePush_sendVideo(JNIEnv *env, jobject instance, jbyteArray data_) {
     jbyte *data = (*env)->GetByteArrayElements(env, data_, NULL);
@@ -370,10 +395,12 @@ Java_com_ben_livesdk_NativePush_sendVideo(JNIEnv *env, jobject instance, jbyteAr
 }
 
 
+*/
 /**
  * 将音频头信息发送
  * 音频头消息只发送一次
- */
+ *//*
+
 void add_audio_squence_header_to_rtmppacket() {
     unsigned char *ppBuffer;
     unsigned long pSizeOfDecoderSpecificInfo;
@@ -386,7 +413,8 @@ void add_audio_squence_header_to_rtmppacket() {
     //设置packet中的body信息
     char *body = packet->m_body;
 
-    /**
+    */
+/**
      * 1、SoundFormat，4bit
             0 = Linear PCM, platform endian
             1 = ADPCM
@@ -415,7 +443,8 @@ void add_audio_squence_header_to_rtmppacket() {
         4、SoundType，1bit，声道
             0 = Mono sound
             1 = Stereo sound
-     */
+     *//*
+
     //10+3+1+1
     body[0] = 0xAF;
     body[1] = 0x00;
@@ -433,11 +462,13 @@ void add_audio_squence_header_to_rtmppacket() {
 
 }
 
+*/
 /**
  * 使用rtmppacket将aac编码后的音频数据打包入队
  * @param bitbuf
  * @param byteslen
- */
+ *//*
+
 void add_audio_body_to_rtmppacket(unsigned char *bitbuf, int byteslen) {
     //AAC Header占用2字节
     int size = byteslen + 2;
@@ -447,7 +478,8 @@ void add_audio_body_to_rtmppacket(unsigned char *bitbuf, int byteslen) {
     //设置packet中的body信息
     char *body = packet->m_body;
 
-    /**
+    */
+/**
      * 1、SoundFormat，4bit
             0 = Linear PCM, platform endian
             1 = ADPCM
@@ -478,7 +510,8 @@ void add_audio_body_to_rtmppacket(unsigned char *bitbuf, int byteslen) {
             1 = Stereo sound
         5、AACPacketType，8bit。
 这个字段来表示AACAUDIODATA的类型：0 = AAC sequence header，1 = AAC raw。第一个音频包用0，后面的都用1。
-     */
+     *//*
+
     //10+3+1+1
     body[0] = 0xAF;
     body[1] = 0x01;
@@ -495,6 +528,7 @@ void add_audio_body_to_rtmppacket(unsigned char *bitbuf, int byteslen) {
     add_rtmp_packet_queue(packet);
 }
 
+*/
 /**
  * 使用AAC进行音频编码
  * @param env
@@ -502,7 +536,8 @@ void add_audio_body_to_rtmppacket(unsigned char *bitbuf, int byteslen) {
  * @param audioData_
  * @param offsetInBytes
  * @param sizeInBytes
- */
+ *//*
+
 JNIEXPORT void JNICALL
 Java_com_ben_livesdk_NativePush_sendAudio(JNIEnv *env, jobject instance, jbyteArray audioData_,
                                                jint offsetInBytes, jint sizeInBytes) {
@@ -563,11 +598,13 @@ Java_com_ben_livesdk_NativePush_free(JNIEnv *env, jobject instance) {
 
 }
 
+*/
 /**
  * 从队列中读取Packet，使用RTMP发送
  * @param arg
  * @return
- */
+ *//*
+
 void *push_thread_func(void *arg) {
     RTMP *rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);
@@ -620,11 +657,13 @@ void *push_thread_func(void *arg) {
     RTMP_Free(rtmp);
     return 0;
 }
+*/
 /**
  * 当开始直播时
  * @param env
  * @param instance
- */
+ *//*
+
 JNIEXPORT void JNICALL
 Java_com_ben_livesdk_NativePush_startPush(JNIEnv *env, jobject instance) {
     //创建队列
@@ -641,4 +680,4 @@ Java_com_ben_livesdk_NativePush_pausePush(JNIEnv *env, jobject instance) {
 
     // TODO
 
-}
+}*/

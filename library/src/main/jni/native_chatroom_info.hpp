@@ -3,7 +3,9 @@
 //
 #ifndef LIVE_NATIVE_CHATROOM_INFO_H
 #define LIVE_NATIVE_CHATROOM_INFO_H
-#include "jni.hpp"
+#include "include/jni/JniHelpers.h"
+using namespace std;
+using namespace benlive::jni;
 
 namespace benlive {
     namespace entity {
