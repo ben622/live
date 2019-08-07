@@ -12,6 +12,7 @@
 ClassRegistry registry;
 
 using namespace benlive::jni;
+
 extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *jvm, void *) {
     JNIEnv *env = jniHelpersInitialize(jvm);
     if (env == NULL) {
@@ -19,8 +20,7 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *jvm, void *) {
     }
     //register
     registry.add(env, new benlive::push::VideoPush(env));
-    //registry.add(env, new benlive::push::AudioPush(env));
-
+    registry.add(env, new benlive::push::AudioPush(env));
     return JNI_VERSION_1_6;
 }
 #endif //LIVE_MAIN_CPP

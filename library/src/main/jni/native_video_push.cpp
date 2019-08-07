@@ -37,7 +37,7 @@ namespace benlive {
                 setClass(env);
 
                 addNativeMethod("setNativeVideoOptions", (void *) setNativeVideoOptions, kTypeVoid,
-                                kTypeInt, kTypeInt, kTypeInt, kTypeInt,NULL);
+                                kTypeInt, kTypeInt,kTypeInt,kTypeInt, NULL);
                 addNativeMethod("sendVideo", (void *) sendVideo, kTypeVoid, kTypeArray(kTypeByte),
                                 NULL);
                 addNativeMethod("prepare", (void *) prepare, kTypeVoid, NULL);
@@ -64,9 +64,8 @@ namespace benlive {
             * @param fps
             */
             static void
-            setNativeVideoOptions(JNIEnv *env, jint width, jint height, jint bitrate, jint fps) {
-                LOGI("%s", "setNativeVideoOptions...");
-                LOGE(" width[%d], height[%d], bitrate[%d], fps[%d]", width,height,bitrate,fps);
+            setNativeVideoOptions(JNIEnv *env,jobject javaThis, jint width, jint height,jint bitrate,jint fps) {
+                LOGI("video options:width[%d], height[%d], bitrate[%d], fps[%d]", width,height,bitrate,fps);
                 //0延迟
                 x264_param_default_preset(&param, "ultrafast", "zerolatency");
                 param.i_csp = X264_CSP_I420;
@@ -102,14 +101,14 @@ namespace benlive {
                 x264_picture_alloc(&pic, param.i_csp, param.i_width, param.i_height);
                 x264_encoder = x264_encoder_open(&param);
                 if (x264_encoder) {
-                    LOGI("initVideoOptions:%s", "success");
+                    LOGI("init video push options:%s", "successful");
                 } else {
-                    LOGE("initVideoOptions:%s", "failed");
+                    LOGE("init video push options:%s", "failed");
                 }
 
             }
 
-            static void sendVideo(JNIEnv *env, jbyteArray jdata) {
+            static void sendVideo(JNIEnv *env,jobject javaThis, jbyteArray jdata) {
                 jbyte *data = env->GetByteArrayElements(jdata, NULL);
                 //将NV21格式数据转换为YUV420
                 //NV21转YUV420p的公式：(Y不变)Y=Y，U=Y+1+1，V=Y+1
@@ -331,26 +330,26 @@ namespace benlive {
             }
 
 
-
-            static void prepare() {
-
-            }
-
-            static void startPush() {
+            static void prepare(JNIEnv *env, jobject javaThis) {
 
             }
 
-            static void pausePush() {
+            static void startPush(JNIEnv *env, jobject javaThis) {
 
             }
 
-            static void stopPush() {
+            static void pausePush(JNIEnv *env, jobject javaThis) {
 
             }
 
-            static void nativeFree() {
+            static void stopPush(JNIEnv *env, jobject javaThis) {
 
             }
+
+            static void nativeFree(JNIEnv *env, jobject javaThis) {
+
+            }
+
 
         };
     }

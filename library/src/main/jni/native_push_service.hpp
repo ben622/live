@@ -23,20 +23,22 @@ namespace benlive {
          * 消息进行队列入队 <--> 消息队列
          */
         class NativePushService {
-        private:
+        public:
             pthread_t mediaPushPthread;
             pthread_mutex_t mediaPushPthreadMutex;
             pthread_cond_t mediaPushPthreadCond;
             /////////////////////
             int startTime;
             int isPushing = false;
-        public:
+
             NativePushService();
             void push(RTMPPacket *packet);
+
+            void stop();
+
             void destory();
 
             static NativePushService *getPushService();
-
         };
     }
 }

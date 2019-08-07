@@ -11,9 +11,7 @@ namespace benliv {
     namespace configure {
         class native_configure {
         private:
-            //服务地址
-            std::string serviceUrl;
-            bool isDebug;
+
         public:
         };
     }

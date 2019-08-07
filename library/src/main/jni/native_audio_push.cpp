@@ -60,8 +60,7 @@ namespace benlive {
              * @param sampleRateInHz
              * @param channel
              */
-            static void setNativeAudioOptions(JNIEnv *env, jint sampleRateInHz, jint channel) {
-                LOGE("sampleRateInHz[%d],channel[%d]", sampleRateInHz, channel);
+            static void setNativeAudioOptions(JNIEnv *env,jobject javaThis, jint sampleRateInHz, jint channel) {
                 faacEncodeHandle = faacEncOpen(sampleRateInHz, channel, &inputSamples,
                                                &maxOutputBytes);
                 if (!faacEncodeHandle) {
@@ -154,7 +153,7 @@ namespace benlive {
             }
 
             static void
-            sendAudio(JNIEnv *env, jbyteArray jdata, int offsetInBytes, int sizeInBytes) {
+            sendAudio(JNIEnv *env, jobject javaThis,jbyteArray jdata, int offsetInBytes, int sizeInBytes) {
                 jbyte *audioData = env->GetByteArrayElements(jdata, NULL);
                 int *pcmbuf;
                 unsigned char *bitbuf;
@@ -189,23 +188,23 @@ namespace benlive {
                     free(pcmbuf);
             }
 
-            static void prepare() {
+            static void prepare(JNIEnv *env, jobject javaThis) {
 
             }
 
-            static void startPush() {
+            static void startPush(JNIEnv *env, jobject javaThis) {
 
             }
 
-            static void pausePush() {
+            static void pausePush(JNIEnv *env, jobject javaThis) {
 
             }
 
-            static void stopPush() {
+            static void stopPush(JNIEnv *env, jobject javaThis) {
 
             }
 
-            static void nativeFree() {
+            static void nativeFree(JNIEnv *env, jobject javaThis) {
 
             }
 

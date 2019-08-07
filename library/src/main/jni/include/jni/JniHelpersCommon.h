@@ -108,6 +108,7 @@
 #define LOG_INFO(...)
 #define LOG_WARN(...)
 #define LOG_ERROR(...)
+#define LOGD(FORMAT, ...) __android_log_print(ANDROID_LOG_DEBUG,LOGGING_TAG,FORMAT,__VA_ARGS__)
 #define LOGI(FORMAT, ...) __android_log_print(ANDROID_LOG_VERBOSE,LOGGING_TAG,FORMAT,__VA_ARGS__)
 #define LOGE(FORMAT, ...) __android_log_print(ANDROID_LOG_ERROR,LOGGING_TAG,FORMAT,__VA_ARGS__)
 #endif

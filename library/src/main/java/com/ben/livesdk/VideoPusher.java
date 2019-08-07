@@ -29,7 +29,11 @@ public class VideoPusher extends APusher implements SurfaceHolder.Callback,Video
     @Override
     public void startPush() {
         isPushing = true;
-        builder.getNativePush().setNativeVideoOptions(builder.getWidth(),builder.getHeight(),builder.getBitrate(),builder.getFps());
+        builder.getNativePush().setNativeVideoOptions(
+                builder.getWidth(),
+                builder.getHeight(),
+                builder.getBitrate(),
+                builder.getFps());
         builder.getNativePush().startPush();
     }
 

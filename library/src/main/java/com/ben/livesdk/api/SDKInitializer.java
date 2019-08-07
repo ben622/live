@@ -19,4 +19,6 @@ public class SDKInitializer {
         System.loadLibrary("live");
     }
 
+    private native static void init();
+
 }

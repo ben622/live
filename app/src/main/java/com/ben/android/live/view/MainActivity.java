@@ -4,12 +4,10 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 
 import com.ben.android.live.R;
-import com.ben.livesdk.NativePush;
 import com.ben.livesdk.api.SDKInitializer;
 import com.ben.livesdk.widgets.LiveView;
 
