@@ -8,6 +8,7 @@
 #include "include/faac/faac.h"
 #include "include/rtmp/rtmp.h"
 #include "native_push_service.hpp"
+
 using namespace benlive::jni;
 
 static unsigned long inputSamples;
@@ -60,7 +61,8 @@ namespace benlive {
              * @param sampleRateInHz
              * @param channel
              */
-            static void setNativeAudioOptions(JNIEnv *env,jobject javaThis, jint sampleRateInHz, jint channel) {
+            static void setNativeAudioOptions(JNIEnv *env, jobject javaThis, jint sampleRateInHz,
+                                              jint channel) {
                 faacEncodeHandle = faacEncOpen(sampleRateInHz, channel, &inputSamples,
                                                &maxOutputBytes);
                 if (!faacEncodeHandle) {
@@ -85,8 +87,8 @@ namespace benlive {
                     LOGE("%s", "faacEncSetConfiguration failed！");
                     return;
                 }
-
                 LOGI("%s", "faac initialization successful");
+                add_audio_squence_header_to_rtmppacket();
             }
 
 
@@ -149,11 +151,12 @@ namespace benlive {
                 packet->m_nChannel = 0x04; //Audio和Video通道
                 packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
 
-                benlive::service::NativePushService::getPushService()->push(packet);
+                benlive::service::NativePushService::getPushService()->push(packet, TRUE);
             }
 
             static void
-            sendAudio(JNIEnv *env, jobject javaThis,jbyteArray jdata, int offsetInBytes, int sizeInBytes) {
+            sendAudio(JNIEnv *env, jobject javaThis, jbyteArray jdata, int offsetInBytes,
+                      int sizeInBytes) {
                 jbyte *audioData = env->GetByteArrayElements(jdata, NULL);
                 int *pcmbuf;
                 unsigned char *bitbuf;
@@ -208,6 +211,70 @@ namespace benlive {
 
             }
 
+
+            /**
+            * 将音频头信息发送
+            * 音频头消息只发送一次
+            */
+            static void add_audio_squence_header_to_rtmppacket() {
+                unsigned char *ppBuffer;
+                unsigned long pSizeOfDecoderSpecificInfo;
+                faacEncGetDecoderSpecificInfo(faacEncodeHandle, &ppBuffer,
+                                              &pSizeOfDecoderSpecificInfo);
+                //AAC Header占用2字节
+                int size = pSizeOfDecoderSpecificInfo + 2;
+                RTMPPacket *packet = static_cast<RTMPPacket *>(malloc(sizeof(RTMPPacket)));
+                RTMPPacket_Alloc(packet, size);
+                RTMPPacket_Reset(packet);
+                //设置packet中的body信息
+                char *body = packet->m_body;
+
+                /**
+                 * 1、SoundFormat，4bit
+                        0 = Linear PCM, platform endian
+                        1 = ADPCM
+                        2 = MP3
+                        3 = Linear PCM, little endian
+                        4 = Nellymoser 16 kHz mono
+                        5 = Nellymoser 8 kHz mono
+                        6 = Nellymoser
+                        7 = G.711 A-law logarithmic PCM
+                        8 = G.711 mu-law logarithmic PCM
+                        9 = reserved
+                        10 = AAC
+                        11 = Speex
+                        14 = MP3 8 kHz
+                        15 = Device-specific sound
+                   2、SoundRate，2bit，抽样频率
+                        0 = 5.5 kHz
+                        1 = 11 kHz
+                        2 = 22 kHz
+                        3 = 44 kHz
+                        对于AAC音频来说，总是0x11，即44khz.
+                    3、SoundSize，1bit，音频的位数。
+                        0 = 8-bit samples
+                        1 = 16-bit samples
+                        AAC总是为0x01,16位。
+                    4、SoundType，1bit，声道
+                        0 = Mono sound
+                        1 = Stereo sound
+                 */
+
+                //10+3+1+1
+                body[0] = 0xAF;
+                body[1] = 0x00;
+                //copy audio data
+                memcpy(&body[2], ppBuffer, pSizeOfDecoderSpecificInfo);
+
+                //设置rtmppacket
+                packet->m_hasAbsTimestamp = 0;
+                packet->m_nBodySize = size;
+                packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
+                packet->m_nChannel = 0x04; //Audio和Video通道
+                packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
+
+                benlive::service::NativePushService::getPushService()->push(packet, TRUE);
+            }
 
         };
     }

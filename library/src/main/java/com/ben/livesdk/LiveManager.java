@@ -38,9 +38,15 @@ public class LiveManager implements LiveInterface{
                 .build();
         //208 * 144
         //176 * 144
+        //640 480
+        //544 408
+        //400 400
+        //1280 720
+        //1440 1080
+        //1920 1080
         mVideoPusher = new VideoPusher.Builder()
-                .width(320)
-                .height(240)
+                .width(1280)
+                .height(720)
                 .surfaceView(mSurfaceViewWeakReference.get().getHolder())
                 .nativePush(mNativePush)
                 .build();

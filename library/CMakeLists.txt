@@ -11,7 +11,7 @@ message("当前工程的路径：${PROJECT_SOURCE_DIR}")
 
 #指定头文件
 set(ROOT ${CMAKE_SOURCE_DIR}/src/main/jni)
-set(PRELIB_ROOT ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/lib)
+set(PRELIB_ROOT ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI})
 INCLUDE_DIRECTORIES(${ROOT}/include ${ROOT}/include/jni)
 
 #添加faac预编译库
@@ -41,6 +41,15 @@ SET_TARGET_PROPERTIES(rtmp
         PROPERTIES
         IMPORTED_LOCATION
         ${PRELIB_ROOT}/librtmp.a)
+
+#添加libyuv
+ADD_LIBRARY(yuv
+        SHARED
+        IMPORTED)
+SET_TARGET_PROPERTIES(yuv
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${PRELIB_ROOT}/libyuv.so)
 
 ADD_LIBRARY(live
         SHARED
@@ -74,6 +83,7 @@ TARGET_LINK_LIBRARIES(live
         x264
         rtmp
         faac
+        yuv
         ${log-lib})
 
 

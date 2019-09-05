@@ -4,7 +4,7 @@
 
 #include "native_push_service.hpp"
 
-#define PUSH_URL "rtmp://39.105.76.133:9510/live/benlive"
+#define PUSH_URL "rtmp://www.zhangchuany.com:9510/live/benlive?accid=123456"
 
 using namespace benlive::service;
 
@@ -32,8 +32,6 @@ void *pthreadCallback(void *arg) {
         goto end;
     }
     nativePushService->isPushing = TRUE;
-    //send audio header packet
-    //add_audio_squence_header_to_rtmppacket();
     //send
     while (nativePushService->isPushing) {
         pthread_mutex_lock(&nativePushService->mediaPushPthreadMutex);
@@ -46,6 +44,7 @@ void *pthreadCallback(void *arg) {
             packet->m_nInfoField2 = rtmp->m_stream_id; //RTMP协议，stream_id数据
             int i = RTMP_SendPacket(rtmp, packet, TRUE); //TRUE放入librtmp队列中，并不是立即发送
             if (!i) {
+                LOGI("%s", "rtmp disconnection");
                 RTMPPacket_Free(packet);
                 pthread_mutex_unlock(&nativePushService->mediaPushPthreadMutex);
                 goto end;
@@ -82,9 +81,11 @@ NativePushService *NativePushService::getPushService() {
 
 
 //将packet加入到推送队列中,音视频数据单元都必须装载至packet进行推送
-void NativePushService::push(RTMPPacket *packet) {
-    //记录了每一个tag相对于第一个tag（File Header）的相对时间
-    packet->m_nTimeStamp = RTMP_GetTime() - startTime;
+void NativePushService::push(RTMPPacket *packet, bool updateTimeStamp) {
+    if (updateTimeStamp) {
+        //记录了每一个tag相对于第一个tag（File Header）的相对时间
+        packet->m_nTimeStamp = RTMP_GetTime() - startTime;
+    }
     //lock
     pthread_mutex_lock(&mediaPushPthreadMutex);
     if (isPushing) {
@@ -94,6 +95,7 @@ void NativePushService::push(RTMPPacket *packet) {
     pthread_cond_signal(&mediaPushPthreadCond);
     //unlock
     pthread_mutex_unlock(&mediaPushPthreadMutex);
+
 
 }
 

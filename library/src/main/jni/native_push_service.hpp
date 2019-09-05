@@ -32,7 +32,7 @@ namespace benlive {
             int isPushing = false;
 
             NativePushService();
-            void push(RTMPPacket *packet);
+            void push(RTMPPacket *packet, bool updateTimeStamp);
 
             void stop();
 

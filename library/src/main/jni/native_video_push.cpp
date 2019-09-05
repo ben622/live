@@ -9,6 +9,7 @@
 #include "include/x264/x264.h"
 #include "include/rtmp/rtmp.h"
 #include "native_push_service.hpp"
+#include "yuv_utils.hpp"
 
 #define SPS_OUT_BUFFER_SIZE 100
 #define PPS_OUT_BUFFER_SIZE 100
@@ -20,7 +21,9 @@ static x264_param_t param;
 static x264_picture_t pic;
 static x264_picture_t pic_out;
 static x264_t *x264_encoder;
-
+static FILE *file;
+static jbyte *src_i420_data;
+static jbyte *src_i420_data_rotate;
 namespace benlive {
     namespace push {
         class VideoPush : public JavaClass {
@@ -37,8 +40,9 @@ namespace benlive {
                 setClass(env);
 
                 addNativeMethod("setNativeVideoOptions", (void *) setNativeVideoOptions, kTypeVoid,
-                                kTypeInt, kTypeInt,kTypeInt,kTypeInt, NULL);
+                                kTypeInt, kTypeInt, kTypeInt, kTypeInt, NULL);
                 addNativeMethod("sendVideo", (void *) sendVideo, kTypeVoid, kTypeArray(kTypeByte),
+                                kTypeInt,
                                 NULL);
                 addNativeMethod("prepare", (void *) prepare, kTypeVoid, NULL);
                 addNativeMethod("startPush", (void *) startPush, kTypeVoid, NULL);
@@ -64,25 +68,31 @@ namespace benlive {
             * @param fps
             */
             static void
-            setNativeVideoOptions(JNIEnv *env,jobject javaThis, jint width, jint height,jint bitrate,jint fps) {
-                LOGI("video options:width[%d], height[%d], bitrate[%d], fps[%d]", width,height,bitrate,fps);
-                //0延迟
-                x264_param_default_preset(&param, "ultrafast", "zerolatency");
-                param.i_csp = X264_CSP_I420;
-                param.i_width = width;
-                param.i_height = height;
+            setNativeVideoOptions(JNIEnv *env, jobject javaThis, jint width, jint height,
+                                  jint bitrate, jint fps) {
+                src_i420_data = (jbyte *) malloc(sizeof(jbyte) * width * height * 3 / 2);
+                src_i420_data_rotate = (jbyte *) malloc(sizeof(jbyte) * width * width * 3 / 2);
 
-                //设置yuv长度
+                file = fopen("sdcard/Download/out.h264", "wb");
+                LOGI("video options:width[%d], height[%d], bitrate[%d], fps[%d]", width, height,
+                     bitrate, fps);
+                //x264_param_default_preset 设置
+                x264_param_default_preset(&param, "ultrafast", "zerolatency");
+                //编码输入的像素格式YUV420P
+                param.i_csp = X264_CSP_I420;
+                param.i_width = height;
+                param.i_height = width;
+
                 y_len = width * height;
                 u_len = y_len / 4;
                 v_len = u_len;
 
-                //码率控制，CQP(恒定质量)，CRF(恒定码率)，ABR(平均码率)
+                //参数i_rc_method表示码率控制，CQP(恒定质量)，CRF(恒定码率)，ABR(平均码率)
+                //恒定码率，会尽量控制在固定码率
                 param.rc.i_rc_method = X264_RC_CRF;
-                //码率 单位（Kbps）
-                param.rc.i_bitrate = bitrate / 1000;
-                //瞬时最大码率
-                param.rc.i_vbv_max_bitrate = bitrate / 1000 * 1.2;
+                param.rc.i_bitrate = bitrate / 1000; //* 码率(比特率,单位Kbps)
+                param.rc.i_vbv_max_bitrate = bitrate / 1000 * 1.2; //瞬时最大码率
+
                 //通过fps控制码率，
                 param.b_vfr_input = 0;
                 //帧率分子
@@ -95,10 +105,16 @@ namespace benlive {
                 param.b_repeat_headers = 1;
                 //设置level级别，5.1
                 param.i_level_idc = 51;
-
+                //并行编码线程数量，0默认为多线程,不使用多线程否则会出现花屏情况
+                param.i_threads = 1;
                 //设置档次
                 x264_param_apply_profile(&param, "baseline");
+
+
+                //x264_picture_t（输入图像）初始化
                 x264_picture_alloc(&pic, param.i_csp, param.i_width, param.i_height);
+                pic.i_pts = 0;
+                //打开编码器
                 x264_encoder = x264_encoder_open(&param);
                 if (x264_encoder) {
                     LOGI("init video push options:%s", "successful");
@@ -108,28 +124,29 @@ namespace benlive {
 
             }
 
-            static void sendVideo(JNIEnv *env,jobject javaThis, jbyteArray jdata) {
+            static void sendVideo(JNIEnv *env, jobject javaThis, jbyteArray jdata, jint cameraId) {
                 jbyte *data = env->GetByteArrayElements(jdata, NULL);
-                //将NV21格式数据转换为YUV420
-                //NV21转YUV420p的公式：(Y不变)Y=Y，U=Y+1+1，V=Y+1
-                jbyte *y = reinterpret_cast<jbyte *>(pic.img.plane[0]);
-                jbyte *u = reinterpret_cast<jbyte *>(pic.img.plane[1]);
-                jbyte *v = reinterpret_cast<jbyte *>(pic.img.plane[2]);
-                //设置y
-                memcpy(y, data, y_len);
-                //设置u，v
-                for (int i = 0; i < u_len; ++i) {
-                    *(u + i) = *(data + y_len + i * 2 + 1);
-                    *(v + i) = *(data + y_len + i * 2);
-                }
-
+                int width = param.i_height;
+                int height = param.i_width;
+                //将nv12格式旋转并转换为yuv
+                util::nv21ToI420(data, width, height, src_i420_data);
+                //旋转角度.如果当前摄像头是后置摄像头则旋转90度 否则旋转270度
+                util::rotateI420(src_i420_data, width, height, src_i420_data_rotate,
+                                 cameraId == 0 ? 90 : 270);
+                //将yuv数据赋值到x264中
+                memcpy(pic.img.plane[0], src_i420_data_rotate,
+                       param.i_width * param.i_height * 3 / 2);
                 //使用x264编码
                 x264_nal_t *nal = NULL;
                 int n_nal = -1;
-                if (x264_encoder_encode(x264_encoder, &nal, &n_nal, &pic, &pic_out) < 0) {
+
+                int bytes = x264_encoder_encode(x264_encoder, &nal, &n_nal, &pic, &pic_out);
+                if (bytes < 0) {
                     LOGE("%s", "x264 encode error");
                     return;
                 }
+                fwrite(nal->p_payload, bytes, 1, file);
+
 
                 //设置SPS PPS
                 unsigned char sps[SPS_OUT_BUFFER_SIZE];
@@ -140,7 +157,7 @@ namespace benlive {
                 memset(pps, 0, PPS_OUT_BUFFER_SIZE);
 
                 pic.i_pts += 1; //顺序累加
-                for (int i = 0; i < n_nal; ++i) {
+                for (int i = 0; i < n_nal; i++) {
                     if (nal[i].i_type == NAL_SPS) {
                         //00 00 00 01;07;payload
                         //不复制四字节起始码，设置sps_length的长度为总长度-四字节起始码长度
@@ -150,7 +167,6 @@ namespace benlive {
                     } else if (nal[i].i_type == NAL_PPS) {
                         pps_length = nal[i].i_payload - 4;
                         memcpy(pps, nal[i].p_payload + 4, pps_length);
-
                         //发送视频序列消息
                         add_squence_header_to_rtmppacket(sps, pps, sps_length, pps_length);
                     } else {
@@ -160,10 +176,8 @@ namespace benlive {
 
                 }
 
-
                 env->ReleaseByteArrayElements(jdata, data, 0);
             }
-
 
 
             /**
@@ -243,7 +257,7 @@ namespace benlive {
 
 
                 //调用推送服务
-                benlive::service::NativePushService::getPushService()->push(packet);
+                benlive::service::NativePushService::getPushService()->push(packet, FALSE);
             }
 
 
@@ -326,7 +340,7 @@ namespace benlive {
                 packet->m_nChannel = 0x04; //Audio和Video通道
                 packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
 
-                benlive::service::NativePushService::getPushService()->push(packet);
+                benlive::service::NativePushService::getPushService()->push(packet, TRUE);
             }
 
 
@@ -343,7 +357,9 @@ namespace benlive {
             }
 
             static void stopPush(JNIEnv *env, jobject javaThis) {
-
+                fclose(file);
+                free(src_i420_data);
+                free(src_i420_data_rotate);
             }
 
             static void nativeFree(JNIEnv *env, jobject javaThis) {

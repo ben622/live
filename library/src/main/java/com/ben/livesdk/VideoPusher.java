@@ -92,8 +92,6 @@ public class VideoPusher extends APusher implements SurfaceHolder.Callback,Video
             List<Camera.Size> sizeList = parameters.getSupportedPreviewSizes();
 
             parameters.setPreviewFormat(ImageFormat.NV21);
-//            parameters.setPreviewFpsRange(24,25);
-            parameters.setPictureSize(builder.getWidth(),builder.getHeight());
             parameters.setPreviewSize(builder.getWidth(),builder.getHeight());
             mCamera.setParameters(parameters);
             mCamera.setPreviewDisplay(builder.getSurfaceHolder());
@@ -122,7 +120,7 @@ public class VideoPusher extends APusher implements SurfaceHolder.Callback,Video
         }
 
         if (isPushing) {
-            builder.getNativePush().sendVideo(data);
+            builder.getNativePush().sendVideo(data,builder.cameraId);
         }
 
 
@@ -132,7 +130,7 @@ public class VideoPusher extends APusher implements SurfaceHolder.Callback,Video
         private int width;
         private int height;
         private int cameraId;
-        private int bitrate = 480000;
+        private int bitrate = 240000;
         private int fps = 25;
         private NativePush nativePush;
         private SurfaceHolder surfaceHolder;

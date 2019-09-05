@@ -14,8 +14,9 @@ import java.lang.reflect.Method;
  * @create 2019/7/30
  */
 public class SDKInitializer {
-
-    public static void init(Context context) {
+    private static Context mApplicationContext;
+    public static void init(Context context,String accid) {
+        mApplicationContext = context.getApplicationContext();
         System.loadLibrary("live");
     }
 

@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        SDKInitializer.init(this);
+        SDKInitializer.init(this,"");
     }
 
     public void onClick(View view) {
