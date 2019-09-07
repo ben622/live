@@ -118,9 +118,9 @@ public class AudioPusher extends APusher {
 
             while (isPushing && audioRecord != null) {
                 byte[] buffer = new byte[bufferSize];
-                int len = audioRecord.read(buffer, 0, bufferSize);
+                int len = audioRecord.read(buffer, 0, buffer.length);
                 if (len > 0) {
-                   // builder.getNativePush().sendAudio(buffer, 0, len);
+//                    builder.getNativePush().sendAudio(buffer, 0, len);
                 }
             }
         }

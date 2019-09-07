@@ -51,6 +51,15 @@ SET_TARGET_PROPERTIES(yuv
         IMPORTED_LOCATION
         ${PRELIB_ROOT}/libyuv.so)
 
+#添加opencv
+ADD_LIBRARY(opencv
+        SHARED
+        IMPORTED)
+SET_TARGET_PROPERTIES(opencv
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${PRELIB_ROOT}/libopencv_java3.so)
+
 ADD_LIBRARY(live
         SHARED
         ${ROOT}/include/queue.c
@@ -84,6 +93,7 @@ TARGET_LINK_LIBRARIES(live
         rtmp
         faac
         yuv
+        opencv
         ${log-lib})
 
 

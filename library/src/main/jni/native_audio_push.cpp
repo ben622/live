@@ -182,6 +182,7 @@ namespace benlive {
                     if (byteslen < 1) {
                         continue;
                     }
+                    LOGI("byteslen[%d]",byteslen);
                     add_audio_body_to_rtmppacket(bitbuf, byteslen);//从bitbuf中得到编码后的aac数据流，放到数据队列
                 }
                 env->ReleaseByteArrayElements(jdata, audioData, 0);

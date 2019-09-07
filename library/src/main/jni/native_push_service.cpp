@@ -10,56 +10,60 @@ using namespace benlive::service;
 
 //pthread callback
 void *pthreadCallback(void *arg) {
-    NativePushService *nativePushService = static_cast<NativePushService *>(arg);
+    try {
+        NativePushService *nativePushService = static_cast<NativePushService *>(arg);
 
-    RTMP *rtmp = RTMP_Alloc();
-    RTMP_Init(rtmp);
-    //设置连接超时时间
-    rtmp->Link.timeout = 10;
-    RTMP_SetupURL(rtmp, PUSH_URL);
-    //发送rtmp数据
-    RTMP_EnableWrite(rtmp);
-    //建立连接
-    if (!RTMP_Connect(rtmp, NULL)) {
-        LOGE("connect [%s] result:%s", PUSH_URL, "连接服务器失败！");
-        goto end;
-    } else {
-        LOGI("connect [%s] result:%s", PUSH_URL, "successful");
-    }
-    nativePushService->startTime = RTMP_GetTime();
-    if (!RTMP_ConnectStream(rtmp, 0)) {
-        LOGE("connect [%s] result:%s", PUSH_URL, "RTMP_ConnectStream failed!");
-        goto end;
-    }
-    nativePushService->isPushing = TRUE;
-    //send
-    while (nativePushService->isPushing) {
-        pthread_mutex_lock(&nativePushService->mediaPushPthreadMutex);
-        pthread_cond_wait(&nativePushService->mediaPushPthreadCond, &nativePushService->mediaPushPthreadMutex);
-        //从队列中获取第一个packet
-        RTMPPacket *packet = static_cast<RTMPPacket *>(queue_get_first());
-        if (packet) {
-            //移除
-            queue_delete_first();
-            packet->m_nInfoField2 = rtmp->m_stream_id; //RTMP协议，stream_id数据
-            int i = RTMP_SendPacket(rtmp, packet, TRUE); //TRUE放入librtmp队列中，并不是立即发送
-            if (!i) {
-                LOGI("%s", "rtmp disconnection");
-                RTMPPacket_Free(packet);
-                pthread_mutex_unlock(&nativePushService->mediaPushPthreadMutex);
-                goto end;
-            } else {
-                //LOGI("%s", "rtmp send packet");
-            }
-            RTMPPacket_Free(packet);
+        RTMP *rtmp = RTMP_Alloc();
+        RTMP_Init(rtmp);
+        //设置连接超时时间
+        rtmp->Link.timeout = 10;
+        RTMP_SetupURL(rtmp, PUSH_URL);
+        //发送rtmp数据
+        RTMP_EnableWrite(rtmp);
+        //建立连接
+        if (!RTMP_Connect(rtmp, NULL)) {
+            LOGE("connect [%s] result:%s", PUSH_URL, "连接服务器失败！");
+            goto end;
+        } else {
+            LOGI("connect [%s] result:%s", PUSH_URL, "successful");
         }
-        pthread_mutex_unlock(&nativePushService->mediaPushPthreadMutex);
+        nativePushService->startTime = RTMP_GetTime();
+        if (!RTMP_ConnectStream(rtmp, 0)) {
+            LOGE("connect [%s] result:%s", PUSH_URL, "RTMP_ConnectStream failed!");
+            goto end;
+        }
+        nativePushService->isPushing = TRUE;
+        //send
+        while (nativePushService->isPushing) {
+            pthread_mutex_lock(&nativePushService->mediaPushPthreadMutex);
+            pthread_cond_wait(&nativePushService->mediaPushPthreadCond,
+                              &nativePushService->mediaPushPthreadMutex);
+            //从队列中获取第一个packet
+            RTMPPacket *packet = static_cast<RTMPPacket *>(queue_get_first());
+            if (packet) {
+                //移除
+                queue_delete_first();
+                packet->m_nInfoField2 = rtmp->m_stream_id; //RTMP协议，stream_id数据
+                int i = RTMP_SendPacket(rtmp, packet, TRUE); //TRUE放入librtmp队列中，并不是立即发送
+                if (!i) {
+                    LOGI("%s", "rtmp disconnection");
+                    RTMPPacket_Free(packet);
+                    pthread_mutex_unlock(&nativePushService->mediaPushPthreadMutex);
+                    goto end;
+                } else {
+                    //LOGI("%s", "rtmp send packet");
+                }
+                RTMPPacket_Free(packet);
+            }
+            pthread_mutex_unlock(&nativePushService->mediaPushPthreadMutex);
+        }
+
+        end:
+        RTMP_Close(rtmp);
+        RTMP_Free(rtmp);
+    } catch (...) {
+        LOGE("%s", "push service exception...");
     }
-
-    end:
-    RTMP_Close(rtmp);
-    RTMP_Free(rtmp);
-
     return 0;
 }
 
@@ -106,6 +110,7 @@ void NativePushService::destory() {
     pthread_cond_destroy(&mediaPushPthreadCond);
     pthread_detach(mediaPushPthread);
 }
+
 void NativePushService::stop() {
     isPushing = false;
 }

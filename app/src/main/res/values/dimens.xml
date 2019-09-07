@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="default_margin_or_padding">14dp</dimen>
+    <dimen name="margin_padding_10dp">10dp</dimen>
+    <dimen name="chat_content_to_parent_margin">72.5dp</dimen>
+    <dimen name="chat_margin_between_logo_and_content">10dp</dimen>
+    <dimen name="text_size_13">13sp</dimen>
+    <dimen name="text_size_14">13sp</dimen>
+    <dimen name="text_size_15">13sp</dimen>
+    <dimen name="text_size_16">13sp</dimen>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+</resources>

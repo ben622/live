@@ -10,6 +10,7 @@
 #include "include/rtmp/rtmp.h"
 #include "native_push_service.hpp"
 #include "yuv_utils.hpp"
+#include "native_filter_openvc_impl.hpp"
 
 #define SPS_OUT_BUFFER_SIZE 100
 #define PPS_OUT_BUFFER_SIZE 100
@@ -24,6 +25,7 @@ static x264_t *x264_encoder;
 static FILE *file;
 static jbyte *src_i420_data;
 static jbyte *src_i420_data_rotate;
+static jbyte *src_opencv_dest_data;
 namespace benlive {
     namespace push {
         class VideoPush : public JavaClass {
@@ -72,6 +74,7 @@ namespace benlive {
                                   jint bitrate, jint fps) {
                 src_i420_data = (jbyte *) malloc(sizeof(jbyte) * width * height * 3 / 2);
                 src_i420_data_rotate = (jbyte *) malloc(sizeof(jbyte) * width * width * 3 / 2);
+                src_opencv_dest_data = (jbyte *) malloc(sizeof(jbyte) * width * width * 3 / 2);
 
                 file = fopen("sdcard/Download/out.h264", "wb");
                 LOGI("video options:width[%d], height[%d], bitrate[%d], fps[%d]", width, height,
@@ -133,8 +136,11 @@ namespace benlive {
                 //旋转角度.如果当前摄像头是后置摄像头则旋转90度 否则旋转270度
                 util::rotateI420(src_i420_data, width, height, src_i420_data_rotate,
                                  cameraId == 0 ? 90 : 270);
+                memset(src_opencv_dest_data, 0, sizeof(jbyte) * width * width * 3 / 2);
+                filter::opencvDiffusionFilter(width,height,src_i420_data_rotate,src_opencv_dest_data);
+
                 //将yuv数据赋值到x264中
-                memcpy(pic.img.plane[0], src_i420_data_rotate,
+                memcpy(pic.img.plane[0], src_opencv_dest_data,
                        param.i_width * param.i_height * 3 / 2);
                 //使用x264编码
                 x264_nal_t *nal = NULL;
@@ -360,6 +366,7 @@ namespace benlive {
                 fclose(file);
                 free(src_i420_data);
                 free(src_i420_data_rotate);
+                free(src_opencv_dest_data);
             }
 
             static void nativeFree(JNIEnv *env, jobject javaThis) {

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mRootContentView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true"
+    tools:ignore="MissingPrefix">
+    <com.ben.livesdk.widgets.LiveView
+        android:id="@+id/mLiveView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <com.ben.android.live.widgets.PeriscopeLayout
+        android:id="@+id/mPeriscopeLayout"
+        android:layout_width="100dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</android.support.constraint.ConstraintLayout>
