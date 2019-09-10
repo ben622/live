@@ -4,7 +4,6 @@ android {
     compileSdkVersion rootProject.ext.COMPILE_SDK_VERSION
 
 
-
     defaultConfig {
         minSdkVersion rootProject.ext.MIN_SDK_VERSION
         targetSdkVersion rootProject.ext.TARGET_SDK_VERSION
@@ -17,7 +16,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                arguments "-DANDROID_ARM_NEON=TRUE", "-DANDROID_TOOLCHAIN=clang","ANDROID_STL=c++_shared"
+                arguments "-DANDROID_ARM_NEON=TRUE", "-DANDROID_TOOLCHAIN=clang", "ANDROID_STL=c++_shared"
                 cppFlags "-fexceptions"
             }
         }
@@ -58,7 +57,18 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "com.android.support:preference-v7:$rootProject.ext.APPCOMPAT_V7_VERSION"
+    implementation "com.android.support:support-annotations:$rootProject.ext.APPCOMPAT_V7_VERSION"
     implementation "com.android.support:appcompat-v7:$rootProject.ext.APPCOMPAT_V7_VERSION"
     implementation "com.android.support.constraint:constraint-layout:$rootProject.ext.CONSTRAINT_LAYOUT_VERSION"
+    implementation "com.squareup:otto:1.3.8"
+    //current live framework only support arm abi.
+    api project(':ijkplayer-java')
+    api project(':ijkplayer-exo')
+    api project(':ijkplayer-armv5')
+    api project(':ijkplayer-armv7a')
+    api project(':ijkplayer-arm64')
+
     testImplementation "junit:junit:$rootProject.ext.JUNIT_VERSION"
+
 }

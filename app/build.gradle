@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    /*signingConfigs {
+    signingConfigs {
         config {
-            keyAlias 'admin'
-            keyPassword '123456'
-            storeFile file('/Users/emapgo/livesig')
-            storePassword '123456'
+            keyAlias 'livesdk'
+            keyPassword 'livesdk'
+            storeFile file('release.jks')
+            storePassword 'livesdk'
         }
-    }*/
+    }
     compileSdkVersion rootProject.ext.COMPILE_SDK_VERSION
     defaultConfig {
         applicationId "com.ben.android.live"
@@ -25,7 +25,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            //signingConfig signingConfigs.config
+            signingConfig signingConfigs.config
+        }
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
     }
 

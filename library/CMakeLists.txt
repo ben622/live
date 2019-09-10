@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.4.1)
+#支持neon汇编
+ENABLE_LANGUAGE(ASM)
 
 # 工程名称
 project("Live")

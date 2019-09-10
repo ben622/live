@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".view.PlayerActivity">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/ijk_transparent_dark"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        tools:context=".toolbar_widget"
+        tools:ignore="MissingConstraints" />
+
+    <EditText
+        android:id="@+id/mPushUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        android:text="rtmp://www.zhangchuany.com:9510/live/benlive" />
+
+    <EditText
+        android:id="@+id/mAccid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="123456" />
+
+    <Button
+        android:id="@+id/mStartPull"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="pull rtmp stream" />
+
+    <android.support.v4.widget.DrawerLayout
+        android:id="@+id/drawer_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- The main content view -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#0099cc">
+
+            <com.ben.livesdk.player.widget.media.IjkVideoView
+                android:id="@+id/video_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/toast_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left|center_vertical"
+                android:background="@color/ijk_transparent_dark"
+                android:padding="16dp"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
+            <TableLayout
+                android:id="@+id/hud_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|center_vertical"
+                android:background="@color/ijk_transparent_dark"
+                android:padding="8dp" />
+
+
+        </FrameLayout>
+
+        <!-- The navigation drawer -->
+        <FrameLayout android:id="@+id/right_drawer"
+            android:layout_width="240dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:background="@color/ijk_transparent_dark" />
+    </android.support.v4.widget.DrawerLayout>
+
+</LinearLayout>

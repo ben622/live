@@ -9,7 +9,7 @@
 #include "native_audio_push.cpp"
 
 
-ClassRegistry registry;
+ClassRegistry registry;;
 
 using namespace benlive::jni;
 

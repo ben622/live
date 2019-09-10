@@ -8,6 +8,7 @@ buildscript {
             url 'https://maven.google.com/'
             name 'Google'
         }
+
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.4.2'
@@ -29,8 +30,9 @@ task clean(type: Delete) {
 }
 
 ext {
+    //sdk
     COMPILE_SDK_VERSION = 27
-    MIN_SDK_VERSION = 15
+    MIN_SDK_VERSION = 21
     TARGET_SDK_VERSION = 27
     VERSION_CODE = 1
     VERSION_NAME = "1.0"
@@ -44,4 +46,11 @@ ext {
     LOCAL_SERVICE_URL = "http://localhost:8080/springboot"
     //build version
     IS_BUILD_RELEASE = false
+
+    //ijkplayer
+    compileSdkVersion = 27
+    buildToolsVersion = "28.0.3"
+    targetSdkVersion = 27
+    versionCode = 800800
+    versionName = "0.8.8"
 }
