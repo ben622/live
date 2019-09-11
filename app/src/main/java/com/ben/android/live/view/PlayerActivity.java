@@ -57,7 +57,7 @@ public class PlayerActivity extends AppCompatActivity implements TracksFragment.
                 // prefer mVideoPath
                 if (mVideoPath != null) {
                     mVideoView.setVideoPath(mVideoPath);
-                }else {
+                } else {
                     Toast.makeText(PlayerActivity.this, "Null Data Source", Toast.LENGTH_SHORT).show();
                     return;
                 }

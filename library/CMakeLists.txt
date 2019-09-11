@@ -14,35 +14,36 @@ message("当前工程的路径：${PROJECT_SOURCE_DIR}")
 #指定头文件
 set(ROOT ${CMAKE_SOURCE_DIR}/src/main/jni)
 set(PRELIB_ROOT ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI})
-INCLUDE_DIRECTORIES(${ROOT}/include ${ROOT}/include/jni)
+INCLUDE_DIRECTORIES(${ROOT}/include)
 
 #添加faac预编译库
 ADD_LIBRARY(faac
-        STATIC
+        SHARED
         IMPORTED)
 #指定静态库文件路径
 SET_TARGET_PROPERTIES(faac
         PROPERTIES
         IMPORTED_LOCATION
-        ${PRELIB_ROOT}/libfaac.a)
+        ${PRELIB_ROOT}/libfaac.so)
+
 #添加x264预编译库
 ADD_LIBRARY(x264
-        STATIC
+        SHARED
         IMPORTED)
 #指定共享库路径
 SET_TARGET_PROPERTIES(x264
         PROPERTIES
         IMPORTED_LOCATION
-        ${PRELIB_ROOT}/libx264.a)
+        ${PRELIB_ROOT}/libx264.so)
 
 #添加rtmp模块
 ADD_LIBRARY(rtmp
-        STATIC
+        SHARED
         IMPORTED)
 SET_TARGET_PROPERTIES(rtmp
         PROPERTIES
         IMPORTED_LOCATION
-        ${PRELIB_ROOT}/librtmp.a)
+        ${PRELIB_ROOT}/librtmp.so)
 
 #添加libyuv
 ADD_LIBRARY(yuv

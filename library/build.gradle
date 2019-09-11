@@ -11,7 +11,7 @@ android {
         versionName "$rootProject.ext.VERSION_NAME"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         ndk {
-            abiFilters 'armeabi'
+            abiFilters 'armeabi','arm64-v8a','x86','x86_64','mips','mips64'
         }
 
         externalNativeBuild {
